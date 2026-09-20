@@ -196,7 +196,7 @@ const LOGIN_DELAY_MS = 150;
     const apC = () => updateVisibilityStyle(active, btnC, st);
 
     const updateAudioBtnUI = () => {
-      btnA.innerText = audioMuted ? '🔕' : '😶‍🌫️';
+      btnA.innerText = audioMuted ? '🔕' : '🥰';
     };
     const btnA = cBtn('🔔', () => {
       audioMuted = !audioMuted;
