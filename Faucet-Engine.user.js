@@ -18,6 +18,12 @@
 const SITE_CREDS = window.MY_SITE_CREDS || {};
 
 /* ========================================================= */
+/*         [1.5] قراءة إعدادات عرض اسم الحساب والرقم           */
+/* ========================================================= */
+const ACCOUNT_PREFIX = window.ACCOUNT_PREFIX || 'xx';
+const ACCOUNT_POS_TOP = window.ACCOUNT_POS_TOP || '10px';
+
+/* ========================================================= */
 /*              [2] إعدادات التأخير والتوقيتات                 */
 /* ========================================================= */
 const CLAIM_DELAY_MS=300;
@@ -102,19 +108,7 @@ function hR(){window.location.replace(window.location.origin+window.location.pat
 /* ========================================================= */
 /*             [10] إظهار إشعار اكتمال العمليات (DONE)       */
 /* ========================================================= */
-function showDone(){
-  if(typeof window.showDoneBanner === 'function') {
-    window.showDoneBanner();
-  } else {
-    if(!document.getElementById('done_banner')){
-      const m=document.createElement('div');
-      m.id='done_banner';
-      m.innerText='DONE';
-      m.style.cssText='position:fixed;bottom:2%;left:50%;transform:translateX(-50%);background:rgba(255,255,0,.8);padding:5px 15px;border-radius:5px;font-weight:bold;font-size:20px;color:#000;z-index:999999;';
-      (document.body||document.documentElement).appendChild(m);
-    }
-  }
-}
+function showDone(){if(!document.getElementById('done_banner')){const m=document.createElement('div');m.id='done_banner';m.innerText='DONE01';m.style.cssText='position:fixed;bottom:2%;left:50%;transform:translateX(-50%);background:rgba(255,255,0,.8);padding:5px 15px;border-radius:5px;font-weight:bold;font-size:20px;color:#000;z-index:999999;';(document.body||document.documentElement).appendChild(m)}}
 
 /* ========================================================= */
 /*            [11] معالجة حالة الفشل والتنقل للموقع التالي    */
@@ -175,6 +169,20 @@ function checkAndScrollForPhrase(){
 }
 
 /* ========================================================= */
+/*       [15.5] دالة إنشاء وعرض عنصر اسم الحساب والرقم       */
+/* ========================================================= */
+function injectAccountBadge(){
+  if(document.getElementById('tbdts-account-badge'))return;
+  const creds=SITE_CREDS[s];
+  if(!creds)return;
+  const badge=document.createElement('div');
+  badge.id='tbdts-account-badge';
+  badge.innerText=`${ACCOUNT_PREFIX} - ${creds.email}`;
+  badge.style.cssText=`position:fixed!important;top:${ACCOUNT_POS_TOP}!important;left:50%!important;transform:translateX(-50%)!important;background:rgba(0,0,0,0.85)!important;color:#00ffcc!important;padding:6px 12px!important;border-radius:5px!important;font-size:15px!important;font-weight:bold!important;z-index:999999999!important;pointer-events:auto!important;font-family:sans-serif!important;box-shadow:0 2px 5px rgba(0,0,0,0.5)!important;white-space:nowrap!important;`;
+  (document.body||document.documentElement).appendChild(badge);
+}
+
+/* ========================================================= */
 /*             [16] إنشاء عنصر أزرار التحكم الفردية            */
 /* ========================================================= */
 function cBtn(txt,cb){const b=document.createElement('div');b.className='tbdts-nav-btn';b.innerText=txt;b.style.cssText=`width:30px!important;height:30px!important;color:#fff!important;display:inline-flex!important;align-items:center!important;justify-content:center!important;font-size:22px!important;cursor:pointer!important;font-weight:bold!important;user-select:none!important;transition:transform .2s ease!important;background:transparent!important;border:none!important;box-shadow:none!important;pointer-events:auto!important;font-family:sans-serif!important;line-height:1!important;`;b.onmouseover=()=>b.style.transform='scale(1.25)';b.onmouseout=()=>b.style.transform='scale(1)';b.addEventListener('click',e=>{e.preventDefault();e.stopPropagation();cb()});return b}
@@ -209,7 +217,7 @@ function aB(){
   const head=document.head||document.documentElement;
   if(!head)return;
   
-  if(typeof window.injectAccountBadge === 'function') window.injectAccountBadge();
+  injectAccountBadge();
 
   const {rC, lC}=createNavContainers();
   let active=GM_getValue('gl_cl',!0);
@@ -268,7 +276,7 @@ const initObserver=()=>{
   const obs=new MutationObserver(()=>{
     if(!isCaptchaVerified()) lockClaimButton();
     checkAndScrollForPhrase();
-    if(typeof window.injectAccountBadge === 'function') window.injectAccountBadge();
+    injectAccountBadge();
   });
   obs.observe(target,{childList:!0,subtree:!0});
 };
@@ -841,7 +849,7 @@ function runLoopCycle(clearTimeoutFn, clearIntervalFn){
   if(!GM_getValue('gl_script_on',!0))return;
   if(!isCaptchaVerified()) lockClaimButton();
   checkAndScrollForPhrase();
-  if(typeof window.injectAccountBadge === 'function') window.injectAccountBadge();
+  injectAccountBadge();
   if(isMaintPage()){
     clearTimeoutFn();
     handleMaintLogic();
@@ -874,3 +882,4 @@ const rS=()=>{
 /* ========================================================= */
 rS();
 })();
+
