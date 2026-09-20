@@ -156,9 +156,9 @@ const LOGIN_DELAY_MS = 150;
   /* ========================================================= */
   function createNavContainers() {
     const rC = document.createElement('div');
-    rC.style.cssText = 'position:fixed!important;bottom:20px!important;right:10px!important;display:flex!important;gap:12px!important;z-index:999999999!important;align-items:center!important;';
+    rC.style.cssText = 'position:fixed!important;bottom:08px!important;right:10px!important;display:flex!important;gap:12px!important;z-index:999999999!important;align-items:center!important;';
     const lC = document.createElement('div');
-    lC.style.cssText = 'position:fixed!important;bottom:20px!important;left:10px!important;display:flex!important;gap:12px!important;z-index:999999999!important;align-items:center!important;';
+    lC.style.cssText = 'position:fixed!important;bottom:08px!important;left:10px!important;display:flex!important;gap:12px!important;z-index:999999999!important;align-items:center!important;';
     return { rC, lC };
   }
 
@@ -196,7 +196,7 @@ const LOGIN_DELAY_MS = 150;
     const apC = () => updateVisibilityStyle(active, btnC, st);
 
     const updateAudioBtnUI = () => {
-      btnA.innerText = audioMuted ? '🔕' : '🔔';
+      btnA.innerText = audioMuted ? '🔕' : '😗';
     };
     const btnA = cBtn('🔔', () => {
       audioMuted = !audioMuted;
