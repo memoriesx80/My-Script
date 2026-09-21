@@ -196,9 +196,9 @@ const LOGIN_DELAY_MS = 150;
     const apC = () => updateVisibilityStyle(active, btnC, st);
 
     const updateAudioBtnUI = () => {
-      btnA.innerText = audioMuted ? '🔕' : '👹';
+      btnA.innerText = audioMuted ? '🔕' : '🔔';
     };
-    const btnA = cBtn('👹', () => {
+    const btnA = cBtn('🔔', () => {
       audioMuted = !audioMuted;
       GM_setValue('gl_audio_muted', audioMuted);
       updateAudioBtnUI();
