@@ -534,13 +534,18 @@ const LOGIN_DELAY_MS = 150;
   /*          [48] تعبئة حقول بيانات تسجيل الدخول               */
   /* ========================================================= */
   function fillLoginFields() {
-    const emailInP = document.getElementById('user_email'), passInP = document.getElementById('password');
+    if (window._loginHandled) return;
+
+    const emailInP = document.getElementById('user_email') || document.querySelector('input[type="email"], input[name="email"]');
+    const passInP = document.getElementById('password') || document.querySelector('input[type="password"], input[name="password"]');
+    
     // الجلب من المتغير الثابت المعرف بالملف المحلي SITE_CREDS
     const creds = typeof SITE_CREDS !== 'undefined' ? SITE_CREDS[s] : null;
-    if (emailInP && passInP && creds && !window._loginHandled) {
-      window._loginHandled = true;
+
+    if (emailInP && passInP && creds) {
       fillEmailInput(emailInP, creds.email);
       fillPasswordInput(passInP, creds.pass);
+      window._loginHandled = true; // تعيين الاعتماد فقط بعد التعبئة الفعلية
       scrollLoginPage();
     }
   }
