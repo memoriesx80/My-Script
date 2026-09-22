@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name        Faucet Engine Core
-// @version      1997.11.13
+// @version      1997.11.14
 // @grant       GM_setValue
 // @grant       GM_getValue
 // @grant       unsafeWindow
@@ -104,13 +104,9 @@ function handleFailure(){
   let errCnt = GM_getValue('err_cnt_' + s, 0) + 1;
   if(errCnt >= 2){
     GM_setValue('err_cnt_' + s, 0);
-    const isLast = sites[sites.length - 1] === s;
-    if(isLast) showDone();
-    else{
-      const nxt = nS[s];
-      if(nxt) window.location.href = 'https://' + nxt + '/faucet.php';
-      else showDone();
-    }
+    const nxt = nS[s];
+    if(nxt) window.location.href = 'https://' + nxt + '/faucet.php';
+    else showDone();
     return !0;
   }
   GM_setValue('err_cnt_' + s, errCnt);
@@ -133,12 +129,12 @@ function resetInactivityTimer(){
     if(inactivityTimer) clearTimeout(inactivityTimer);
     return;
   }
-  if(isUnlocked(s)){
-    if(inactivityTimer) clearTimeout(inactivityTimer);
-    return;
-  }
   if(inactivityTimer) clearTimeout(inactivityTimer);
-  inactivityTimer = setTimeout(()=>showDone(), 4e4);
+  inactivityTimer = setTimeout(()=>{
+    const nxt = nS[s];
+    if(nxt) window.location.href = 'https://' + nxt + '/faucet.php';
+    else showDone();
+  }, 4e4);
 }
 
 /* ========================================================= */
@@ -356,15 +352,11 @@ function handleMaintLogic(){
   window._maintHandled = !0;
   window._isMaint = !0;
   eZ();
-  const isLast = sites[sites.length - 1] === s;
   if(!maintT){
     maintT = setTimeout(()=>{
-      if(isLast) showDone();
-      else{
-        const nxt = nS[s];
-        if(nxt) window.location.href = 'https://' + nxt + '/faucet.php';
-        else showDone();
-      }
+      const nxt = nS[s];
+      if(nxt) window.location.href = 'https://' + nxt + '/faucet.php';
+      else showDone();
     }, 2000);
   }
 }
@@ -786,13 +778,9 @@ function handleWithdrawLogic(){
 /*            [62] التوجيه التلقائي للموقع التالي عند النجاح  */
 /* ========================================================= */
 function navigateNextOnSuccess(){
-  if(sites[sites.length - 1] === s){
-    showDone();
-  }else{
-    const nxt = nS[s];
-    if(nxt) setTimeout(()=>{ window.location.href = 'https://' + nxt + '/faucet.php'; }, 1000);
-    else showDone();
-  }
+  const nxt = nS[s];
+  if(nxt) setTimeout(()=>{ window.location.href = 'https://' + nxt + '/faucet.php'; }, 1000);
+  else showDone();
 }
 
 /* ========================================================= */
@@ -888,7 +876,17 @@ function runLoopCycle(clearTimeoutFn, clearIntervalFn){
   selectPreferredCaptcha();
   if(path.includes('login') || document.getElementById('process_login')) handleAutoLogin();
   handleWithdrawLogic();
-  if(!isUnlocked(s)) return;
+  if(!isUnlocked(s)){
+    if(!window._lockedAutoNav){
+      window._lockedAutoNav = !0;
+      setTimeout(()=>{
+        const nxt = nS[s];
+        if(nxt) window.location.href = 'https://' + nxt + '/faucet.php';
+        else showDone();
+      }, 1500);
+    }
+    return;
+  }
   checkToasts(clearTimeoutFn, clearIntervalFn);
 }
 
