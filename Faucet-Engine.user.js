@@ -27,10 +27,10 @@ window._m_run_active = !0;
 /* ========================================================= */
 const path = window.location.pathname, s = window.location.hostname;
 
-// قراءة بيانات التكاوين وخريطة الانتقال الديناميكية من اللودر المحلي
-const sites = window.MY_SITES || ['tronpick.io', 'bnbpick.io', 'dogepick.io', 'tonpick.game', 'solpick.io'];
-const nS = window.MY_NS || {'tronpick.io':'bnbpick.io','bnbpick.io':'dogepick.io','dogepick.io':'tonpick.game','tonpick.game':'solpick.io','solpick.io':'tronpick.io'};
-const pS = window.MY_PS || {'tronpick.io':'solpick.io','bnbpick.io':'tronpick.io','dogepick.io':'bnbpick.io','tonpick.game':'dogepick.io','solpick.io':'tronpick.game'};
+// قراءة بيانات التكاوين وخريطة الانتقال الديناميكية من اللودر المحلي حصراً
+const sites = Array.isArray(window.MY_SITES) && window.MY_SITES.length > 0 ? window.MY_SITES : [s];
+const nS = window.MY_NS || {};
+const pS = window.MY_PS || {};
 
 /* ========================================================= */
 /*              [5] تعريف قواعد أنماط CSS للإخفاء            */
@@ -791,6 +791,7 @@ function navigateNextOnSuccess(){
   }else{
     const nxt = nS[s];
     if(nxt) setTimeout(()=>{ window.location.href = 'https://' + nxt + '/faucet.php'; }, 1000);
+    else showDone();
   }
 }
 
