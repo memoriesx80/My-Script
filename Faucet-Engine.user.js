@@ -1,7 +1,7 @@
 (function() {
   'use strict';
   const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
-  /* ========================================================= */
+  /* ======================================================== */
   /* [2.1] قفل الشبكة الحديدي (Network Level Interceptor)       */
   /* ========================================================= */
   uWin._tbdts_SINGLE_LOCK = false;
