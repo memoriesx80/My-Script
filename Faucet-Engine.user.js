@@ -1,7 +1,7 @@
 (function() {
   'use strict';
   const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
-  /* ======================================================== */
+  /* ========================================================= */
   /* [2.1] قفل الشبكة الحديدي (Network Level Interceptor)       */
   /* ========================================================= */
   uWin._tbdts_SINGLE_LOCK = false;
@@ -49,6 +49,16 @@
   if(window._m_run_active) return;
   window._m_run_active = true;
   const path = window.location.pathname.toLowerCase();
+
+  /* ========================================================= */
+  /* ريفرش إجباري لمرة واحدة فقط لجلسة نظيفة ومنع التوكن القديم  */
+  /* ========================================================= */
+  if (path.includes('faucet') && !sessionStorage.getItem('_tbdts_fresh_session')) {
+    sessionStorage.setItem('_tbdts_fresh_session', 'true');
+    window.location.replace(window.location.href);
+    return;
+  }
+
   const s = window.location.hostname.replace(/^www\./, '');
   const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
   window._tbdts_page_open_time = Date.now();
@@ -213,7 +223,7 @@
   function getClaimButton(){ return document.getElementById('process_claim_hourly_faucet'); }
   function getLoginButton(){ return document.getElementById('process_login'); }
   
-  // التحقق الصارم من التوكن بحيث يتأكد أنه تولد بالكامل (أطول من 50 حرف) ومنع الضغط المبكر أثناء التحميل
+  // التحقق الصارم من التوكن (> 50 حرف) لمنع الضغط المبكر وخطأ invalid captcha code
   function isCaptchaVerified(){
     const inputs = document.querySelectorAll('input[name="cf-turnstile-response"]');
     for (let input of inputs) {
@@ -293,7 +303,7 @@
     }
   }
 
-  // فرض اختيار كابتشا كلاود فلير باستمرار لحين استقرار القيمة على 3
+  // فرض وتثبيت اختيار كابتشا كلاود فلير باستمرار
   function selectPreferredCaptcha(){
     const sl = document.querySelector('#select_captcha');
     if(sl && sl.value !== '3'){
@@ -380,6 +390,7 @@
   }
   function checkToasts(clearTimeoutFn, clearIntervalFn){
     if(!path.includes('faucet') || window._tbdts_toast_processed) return;
+    // استثناء فحص التوست الخاص بموقع solpick.io فقط
     if(s.includes('solpick.io')) return;
     
     const realToast = getActiveToast();
@@ -394,7 +405,7 @@
   function runLoopCycle(clearTimeoutFn, clearIntervalFn){
     if(!GM_getValue('gl_script_on', true) || window._tbdts_toast_processed) return;
     
-    // فرض اختيار الكابتشا باستمرار في كل نبضة لحين تثبيتها
+    // فرض اختيار كابتشا كلاود فلير باستمرار
     selectPreferredCaptcha();
 
     if(!window._tbdts_clicked_once && isCaptchaVerified()){
