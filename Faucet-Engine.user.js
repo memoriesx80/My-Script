@@ -3,7 +3,22 @@
 /*                  [القسم الثاني: المحرك البرمجي الديناميكي]                */
 /*            (عند تحديث المحرك مستقبلاً، يتم استبدال ما تحته فقط)           */
 /*                                                                           */
-/* ========================================================================= */
+/* =================(function() {
+  'use strict';
+  // اختبار فوري للتأكد من نجاح جلب المحرك وحقنه
+  console.log('TBDTS Engine Loaded Successfully from GitHub!');
+  
+  if (document.body) {
+    const testDiv = document.createElement('div');
+    testDiv.innerText = '✅ تم جلب المحرك بنجاح من GitHub';
+    testDiv.style.cssText = 'position:fixed!important;top:10px!important;left:50%!important;transform:translateX(-50%)!important;background:green!important;color:white!important;padding:5px 15px!important;border-radius:5px!important;z-index:999999999!important;font-size:14px!important;font-weight:bold!important;';
+    document.body.appendChild(testDiv);
+    setTimeout(() => testDiv.remove(), 5000); // يختفي الإشعار بعد 5 ثواني
+  }
+})();
+======================================================== */
+
+
 (function() {
   'use strict';
   const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
