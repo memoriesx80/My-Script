@@ -1,14 +1,21 @@
 (function() {
   'use strict';
-  // اختبار فوري للتأكد من نجاح جلب المحرك وحقنه
-  console.log('TBDTS Engine Loaded Successfully from GitHub!');
+  // نظام اختبار وتأكيد التحديث الفوري من GitHub
+  console.log('TBDTS Engine V2 Loaded & Active!');
   
+  function showTestBadge() {
+    if (document.getElementById('github-test-badge')) return;
+    const badge = document.createElement('div');
+    badge.id = 'github-test-badge';
+    badge.innerText = '🚀 جيت هب شغال ومحدث بنجاح (نسخة الاختبار)';
+    badge.style.cssText = 'position:fixed!important;top:70px!important;left:50%!important;transform:translateX(-50%)!important;background:#ff0055!important;color:#fff!important;padding:8px 16px!important;border-radius:8px!important;z-index:999999999!important;font-size:14px!important;font-weight:bold!important;box-shadow:0 4px 10px rgba(0,0,0,0.5)!important;pointer-events:none!important;';
+    (document.body || document.documentElement).appendChild(badge);
+  }
+
   if (document.body) {
-    const testDiv = document.createElement('div');
-    testDiv.innerText = '✅ تم جلب المحرك بنجاح من GitHub';
-    testDiv.style.cssText = 'position:fixed!important;top:10px!important;left:50%!important;transform:translateX(-50%)!important;background:green!important;color:white!important;padding:5px 15px!important;border-radius:5px!important;z-index:999999999!important;font-size:14px!important;font-weight:bold!important;';
-    document.body.appendChild(testDiv);
-    setTimeout(() => testDiv.remove(), 5000);
+    showTestBadge();
+  } else {
+    window.addEventListener('DOMContentLoaded', showTestBadge);
   }
 })();
 
@@ -63,6 +70,7 @@
     return origXhrSend.apply(this, args);
   };
 })();
+
 (function(){
   'use strict';
   if(window._m_run_active) return;
