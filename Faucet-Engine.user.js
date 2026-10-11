@@ -21,13 +21,6 @@
 (function() {
   'use strict';
   const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
-  // ... وباقي الكود هنا
-
-
-
-(function() {
-  'use strict';
-  const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
   /* ========================================================= */
   /* [2.1] قفل الشبكة الحديدي (Network Level Interceptor)       */
   /* ========================================================= */
