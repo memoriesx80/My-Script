@@ -1,3 +1,16 @@
+// ==UserScript==
+// @name         TBDTS Engine
+// @version      2.0
+// @match        *://tronpick.io/*
+// @match        *://bnbpick.io/*
+// @match        *://dogepick.io/*
+// @match        *://tonpick.game/*
+// @match        *://solpick.io/*
+// @grant        GM_setValue
+// @grant        GM_getValue
+// @grant        unsafeWindow
+// @run-at       document-start
+// ==/UserScript==
 (function() {
   'use strict';
   const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
