@@ -1,24 +1,3 @@
-(function() {
-  'use strict';
-  // نظام اختبار وتأكيد التحديث الفوري من GitHub
-  console.log('TBDTS Engine V2 Loaded & Active!');
-  
-  function showTestBadge() {
-    if (document.getElementById('github-test-badge')) return;
-    const badge = document.createElement('div');
-    badge.id = 'github-test-badge';
-    badge.innerText = '🚀 جيت هب شغال ومحدث بنجاح (نسخة الاختبار)';
-    badge.style.cssText = 'position:fixed!important;top:70px!important;left:50%!important;transform:translateX(-50%)!important;background:#ff0055!important;color:#fff!important;padding:8px 16px!important;border-radius:8px!important;z-index:999999999!important;font-size:14px!important;font-weight:bold!important;box-shadow:0 4px 10px rgba(0,0,0,0.5)!important;pointer-events:none!important;';
-    (document.body || document.documentElement).appendChild(badge);
-  }
-
-  if (document.body) {
-    showTestBadge();
-  } else {
-    window.addEventListener('DOMContentLoaded', showTestBadge);
-  }
-})();
-
 /* ========================================================================= */
 /*                                                                           */
 /*                  [القسم الثاني: المحرك البرمجي الديناميكي]                */
