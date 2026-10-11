@@ -1,16 +1,9 @@
-// ==UserScript==
-// @name         TBDTS Engine
-// @version      2.0
-// @match        *://tronpick.io/*
-// @match        *://bnbpick.io/*
-// @match        *://dogepick.io/*
-// @match        *://tonpick.game/*
-// @match        *://solpick.io/*
-// @grant        GM_setValue
-// @grant        GM_getValue
-// @grant        unsafeWindow
-// @run-at       document-start
-// ==/UserScript==
+/* ========================================================================= */
+/*                                                                           */
+/*                  [القسم الثاني: المحرك البرمجي الديناميكي]                */
+/*            (عند تحديث المحرك مستقبلاً، يتم استبدال ما تحته فقط)           */
+/*                                                                           */
+/* ========================================================================= */
 (function() {
   'use strict';
   const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
@@ -56,31 +49,27 @@
     return origXhrSend.apply(this, args);
   };
 })();
-
 (function(){
   'use strict';
   if(window._m_run_active) return;
   window._m_run_active = true;
   const path = window.location.pathname.toLowerCase();
-
-  /* ========================================================= */
-  /* ريفرش إجباري لمرة واحدة فقط لجلسة نظيفة ومنع التوكن القديم  */
-  /* ========================================================= */
-  if (path.includes('faucet') && !sessionStorage.getItem('_tbdts_fresh_session')) {
-    sessionStorage.setItem('_tbdts_fresh_session', 'true');
-    window.location.replace(window.location.href);
-    return;
-  }
-
   const s = window.location.hostname.replace(/^www\./, '');
   const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
   window._tbdts_page_open_time = Date.now();
-
+  setTimeout(() => {
+    const inputs = document.querySelectorAll('input[name="cf-turnstile-response"], input[name="g-recaptcha-response"]');
+    inputs.forEach(input => {
+      if (input && input.value && input.value.trim().length > 100) {
+        window._tbdts_stale_token = input.value.trim();
+        input.value = '';
+      }
+    });
+  }, 100);
   const sites = uWin.MY_SITES || ['tronpick.io'];
   const nS = uWin.MY_NS || {'tronpick.io':'tronpick.io'};
-
   /* ========================================================= */
-  /* [2.2] قواعد أنماط CSS للإخفاء                              */
+  /* [2.2] قواعد أنماط CSS للإخفاء (قابلة للتعديل والتحديث مستقبلاً) */
   /* ========================================================= */
   const hideCss = ".cpx_uqnxd_80,.cpx_uqnxd_83,#show_surveys,#show_surveys > h3,table.history_tbl,th[width=\"50%\"],th.top_header,tr.history_row > td,div.faucet-tabs,.faucet-tab,.faucet-tab.is-active,#hourly_faucet > p,.level-progress-card.level-progress-card--tabs,.level-progress-card__inner,#cpx_survey,footer.footer,div.footer-container,.iconcaptcha-modal__header,.iconcaptcha-modal__footer,.iconcaptcha-modal__body-info,h2.single_title_n,div[class=\"single_title_n\"] > h2,p[style*=\"margin: 0px auto 30px\"],p[style*=\"margin:0 auto 30px\"],.promo-banner,#promo_banner,div[data-interval=\"5000\"],div[aria-roledescription=\"carousel\"],div[data-contest-end],div[aria-label=\"Feature promotions\"]{display:none!important}.dash_tp_menu_area{display:block!important;visibility:visible!important;opacity:1!important}.nav_container{display:flex!important;visibility:visible!important;opacity:1!important}";
   
@@ -103,7 +92,6 @@
     const earlyObs = new MutationObserver(()=>{if(injectFastStyle()) earlyObs.disconnect()});
     earlyObs.observe(document, {childList: true, subtree: true});
   }
-
   /* ========================================================= */
   /* [2.3] دوال التحقق، الحالة، التوقيت والأخطاء الأساسية       */
   /* ========================================================= */
@@ -177,7 +165,6 @@
     obs.observe(target, {childList: true, subtree: true});
   };
   initObserver();
-
   function playAudio(t){
     if(GM_getValue('gl_audio_muted', false)) return;
     try{
@@ -198,7 +185,6 @@
       o.stop(ac.currentTime + .2);
     }catch(e){}
   }
-
   function eZ(){
     const head = document.head || document.documentElement;
     if((path.includes('withdraw') || window._isMaint) && head){
@@ -227,7 +213,6 @@
       maintT = setTimeout(()=>{ goToNextSiteOrDone(); }, 2000);
     }
   }
-
   /* ========================================================= */
   /* [2.4] الكابتشا، تسجيل الدخول والنقر المنفرد              */
   /* ========================================================= */
@@ -235,18 +220,23 @@
   window._tbdts_clicked_once = false;
   function getClaimButton(){ return document.getElementById('process_claim_hourly_faucet'); }
   function getLoginButton(){ return document.getElementById('process_login'); }
-  
-  // التحقق الصارم من التوكن (> 50 حرف) لمنع الضغط المبكر وخطأ invalid captcha code
   function isCaptchaVerified(){
-    const inputs = document.querySelectorAll('input[name="cf-turnstile-response"]');
+    if (Date.now() - (window._tbdts_page_open_time || 0) < 1000) {
+      return false;
+    }
+    const inputs = document.querySelectorAll('input[name="cf-turnstile-response"], input[name="g-recaptcha-response"]');
     for (let input of inputs) {
-      if (input && input.value && typeof input.value === 'string' && input.value.trim().length > 50) {
+      if (input && input.value && typeof input.value === 'string' && input.value.trim().length > 100) {
+        const val = input.value.trim();
+        if (window._tbdts_stale_token && window._tbdts_stale_token === val) {
+          input.value = '';
+          return false;
+        }
         return true;
       }
     }
     return false;
   }
-
   function executeSingleClaim(){
     if(window._tbdts_clicked_once || uWin._tbdts_SINGLE_LOCK) return;
     const b = getClaimButton();
@@ -315,8 +305,6 @@
       }catch(e){}
     }
   }
-
-  // فرض وتثبيت اختيار كابتشا كلاود فلير باستمرار
   function selectPreferredCaptcha(){
     const sl = document.querySelector('#select_captcha');
     if(sl && sl.value !== '3'){
@@ -325,7 +313,6 @@
       sl.dispatchEvent(new Event('input', {bubbles: true}));
     }
   }
-
   function handleWithdrawLogic(){
     if(path.includes('withdraw')){
       eZ();
@@ -366,13 +353,13 @@
       }
     }
   }
-
   /* ========================================================= */
   /* [2.5] معالجة التنبيهات (Toasts) والنتائج                   */
   /* ========================================================= */
   function getActiveToast(){
     const allToasts = document.querySelectorAll('.jq-toast-single');
     for(let t of allToasts){
+      let tTxt = (t.innerText || t.textContent || '').toLowerCase();
       return t;
     }
     return null;
@@ -403,24 +390,16 @@
   }
   function checkToasts(clearTimeoutFn, clearIntervalFn){
     if(!path.includes('faucet') || window._tbdts_toast_processed) return;
-    // استثناء فحص التوست الخاص بموقع solpick.io فقط
-    if(s.includes('solpick.io')) return;
-    
     const realToast = getActiveToast();
     if(realToast){
       processToastResult(realToast, clearTimeoutFn, clearIntervalFn);
     }
   }
-
   /* ========================================================= */
   /* [2.6] حلقة التشغيل الرئيسية والنبضات (Run Loop & Cycle)     */
   /* ========================================================= */
   function runLoopCycle(clearTimeoutFn, clearIntervalFn){
     if(!GM_getValue('gl_script_on', true) || window._tbdts_toast_processed) return;
-    
-    // فرض اختيار كابتشا كلاود فلير باستمرار
-    selectPreferredCaptcha();
-
     if(!window._tbdts_clicked_once && isCaptchaVerified()){
       if(isUnlocked(s)){
         if(path.includes('login') || getLoginButton()){
@@ -441,6 +420,7 @@
     if(checkCloudflareErrors(clearTimeoutFn, clearIntervalFn)) return;
     triggerInitialInteraction();
     if(typeof uWin.aB === 'function') uWin.aB();
+    selectPreferredCaptcha();
     if(path.includes('login') || document.getElementById('process_login')) handleAutoLogin();
     handleWithdrawLogic();
     if(!isUnlocked(s)) return;
