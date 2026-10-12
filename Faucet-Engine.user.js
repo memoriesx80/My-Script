@@ -52,7 +52,7 @@
   if(window._m_run_active) return;
   window._m_run_active = true;
 
-  const TEST_VERSION_TAG = "TEST_BANNER_v8_STRICT_NAV";
+  const TEST_VERSION_TAG = "TEST_BANNER_v10_LOADER_SYNC";
   function injectTestBanner() {
     if (document.getElementById('tbdts-test-banner')) return;
     const banner = document.createElement('div');
@@ -90,15 +90,9 @@
     });
   }, 100);
   
-  // قراءة المواقع والمصفوفة من اللودر أو الاعتماد على الترتيب النظامي الدقيق
-  const sites = (uWin.MY_SITES && uWin.MY_SITES.length > 0) ? uWin.MY_SITES : ['tronpick.io', 'bnbpick.io', 'dogepick.game', 'tonpick.game', 'solpick.io'];
-  const nS = (uWin.MY_NS && Object.keys(uWin.MY_NS).length > 0) ? uWin.MY_NS : {
-    'tronpick.io': 'bnbpick.io',
-    'bnbpick.io': 'dogepick.game',
-    'dogepick.game': 'tonpick.game',
-    'tonpick.game': 'solpick.io',
-    'solpick.io': 'solpick.io'
-  };
+  // سحب المواقع وخريطة الانتقال من اللودر المحلي للمستخدم حصراً مع احتياط آمن
+  const sites = (uWin.MY_SITES && uWin.MY_SITES.length > 0) ? uWin.MY_SITES : [];
+  const nS = (uWin.MY_NS && Object.keys(uWin.MY_NS).length > 0) ? uWin.MY_NS : {};
 
   const hideCss = ".cpx_uqnxd_80,.cpx_uqnxd_83,#show_surveys,#show_surveys > h3,table.history_tbl,th[width=\"50%\"],th.top_header,tr.history_row > td,div.faucet-tabs,.faucet-tab,.faucet-tab.is-active,#hourly_faucet > p,.level-progress-card.level-progress-card--tabs,.level-progress-card__inner,#cpx_survey,footer.footer,div.footer-container,.iconcaptcha-modal__header,.iconcaptcha-modal__footer,.iconcaptcha-modal__body-info,h2.single_title_n,div[class=\"single_title_n\"] > h2,p[style*=\"margin: 0px auto 30px\"],p[style*=\"margin:0 auto 30px\"],.promo-banner,#promo_banner,div[data-interval=\"5000\"],div[aria-roledescription=\"carousel\"],div[data-contest-end],div[aria-label=\"Feature promotions\"]{display:none!important}.dash_tp_menu_area{display:block!important;visibility:visible!important;opacity:1!important}.nav_container{display:flex!important;visibility:visible!important;opacity:1!important}";
   
@@ -130,25 +124,31 @@
     window.location.replace(window.location.origin + window.location.pathname + '?t=' + Date.now());
   }
 
-  // منطق الانتقال الصارم: لا يتم عرض بنر النهاية إلا إذا كان الموقع الحالي هو العنصر الأخير تماماً في المصفوفة
+  // منطق الانتقال الذي يعتمد كلياً على مصفوفة اللودر الخاصة بك
   function goToNextSiteOrDone(){
-    const lastSite = sites[sites.length - 1];
-    const isLast = (s === lastSite);
+    const lastSite = sites.length > 0 ? sites[sites.length - 1] : s;
+    const isActuallyLast = (s === lastSite);
     
-    if(isLast){
-      if(typeof uWin.showDone === 'function') uWin.showDone();
-      else window.location.reload();
-    } else {
-      const nxt = nS[s];
-      if(nxt){
-        window.location.href = 'https://' + nxt + '/faucet.php';
+    if (isActuallyLast || sites.length === 0) {
+      if (typeof uWin.showDone === 'function') {
+        uWin.showDone();
       } else {
-        const currentIndex = sites.indexOf(s);
-        if(currentIndex !== -1 && currentIndex < sites.length - 1){
-          window.location.href = 'https://' + sites[currentIndex + 1] + '/faucet.php';
+        window.location.reload();
+      }
+    } else {
+      const nextTarget = nS[s];
+      if (nextTarget) {
+        window.location.href = 'https://' + nextTarget + '/faucet.php';
+      } else {
+        const idx = sites.indexOf(s);
+        if (idx !== -1 && idx < sites.length - 1) {
+          window.location.href = 'https://' + sites[idx + 1] + '/faucet.php';
         } else {
-          if(typeof uWin.showDone === 'function') uWin.showDone();
-          else window.location.reload();
+          if (typeof uWin.showDone === 'function') {
+            uWin.showDone();
+          } else {
+            window.location.reload();
+          }
         }
       }
     }
