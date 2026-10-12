@@ -52,7 +52,7 @@
   if(window._m_run_active) return;
   window._m_run_active = true;
 
-  const TEST_VERSION_TAG = "TEST_BANNER_v11_SYNC_FIX";
+  const TEST_VERSION_TAG = "TEST_BANNER_v12_LOADER_SYNC_FIX";
   function injectTestBanner() {
     if (document.getElementById('tbdts-test-banner')) return;
     const banner = document.createElement('div');
@@ -90,8 +90,8 @@
     });
   }, 100);
   
-  // دالة ذكية وآمنة لجلب المواقع وخريطة الانتقال من اللودر مع دعم النافذة الآمنة
-  function getSitesConfig() {
+  // دالة قراءة إعدادات اللودر الحية (تسحب المواقع من اللودر حصراً مع التحقق من نطاق النافذة العامة والآمنة)
+  function getLoaderConfig() {
     let sites = (uWin.MY_SITES && uWin.MY_SITES.length > 0) ? uWin.MY_SITES : (window.MY_SITES && window.MY_SITES.length > 0 ? window.MY_SITES : []);
     let nS = (uWin.MY_NS && Object.keys(uWin.MY_NS).length > 0) ? uWin.MY_NS : (window.MY_NS && Object.keys(window.MY_NS).length > 0 ? window.MY_NS : {});
     return { sites, nS };
@@ -127,13 +127,13 @@
     window.location.replace(window.location.origin + window.location.pathname + '?t=' + Date.now());
   }
 
-  // منطق الانتقال الآمن المعتمد على قراءة إعدادات اللودر اللحظية
+  // منطق الانتقال السليم بناءً على مصفوفة اللودر الخاصة بك
   function goToNextSiteOrDone(){
-    const { sites, nS } = getSitesConfig();
+    const { sites, nS } = getLoaderConfig();
     
-    // إذا لم يقرأ اللودر المواقع لأي سبب، نقوم بإعادة تحميل الصفحة كحماية بديلة بدل إظهار بنر خطأ
+    // حماية تامة: إذا لم يتم العثور على المواقع مؤقتاً، ننتظر نصف ثانية ونعيد المحاولة بدل إظهار بنر خطأ
     if(!sites || sites.length === 0){
-      window.location.reload();
+      setTimeout(goToNextSiteOrDone, 500);
       return;
     }
 
