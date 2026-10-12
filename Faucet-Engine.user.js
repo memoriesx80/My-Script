@@ -52,7 +52,7 @@
   if(window._m_run_active) return;
   window._m_run_active = true;
 
-  const TEST_VERSION_TAG = "TEST_BANNER_v6_FINAL_NAV";
+  const TEST_VERSION_TAG = "TEST_BANNER_v8_STRICT_NAV";
   function injectTestBanner() {
     if (document.getElementById('tbdts-test-banner')) return;
     const banner = document.createElement('div');
@@ -90,8 +90,9 @@
     });
   }, 100);
   
-  const sites = uWin.MY_SITES || ['tronpick.io', 'bnbpick.io', 'dogepick.game', 'tonpick.game', 'solpick.io'];
-  const nS = uWin.MY_NS || {
+  // قراءة المواقع والمصفوفة من اللودر أو الاعتماد على الترتيب النظامي الدقيق
+  const sites = (uWin.MY_SITES && uWin.MY_SITES.length > 0) ? uWin.MY_SITES : ['tronpick.io', 'bnbpick.io', 'dogepick.game', 'tonpick.game', 'solpick.io'];
+  const nS = (uWin.MY_NS && Object.keys(uWin.MY_NS).length > 0) ? uWin.MY_NS : {
     'tronpick.io': 'bnbpick.io',
     'bnbpick.io': 'dogepick.game',
     'dogepick.game': 'tonpick.game',
@@ -129,16 +130,19 @@
     window.location.replace(window.location.origin + window.location.pathname + '?t=' + Date.now());
   }
 
-  // الانتقال الدقيق للموقع التالي حصراً، ولا يتم عرض بنر النهاية (showDone) إلا إذا كان الموقع الأخير تماماً
+  // منطق الانتقال الصارم: لا يتم عرض بنر النهاية إلا إذا كان الموقع الحالي هو العنصر الأخير تماماً في المصفوفة
   function goToNextSiteOrDone(){
-    const isLast = sites[sites.length - 1] === s;
+    const lastSite = sites[sites.length - 1];
+    const isLast = (s === lastSite);
+    
     if(isLast){
       if(typeof uWin.showDone === 'function') uWin.showDone();
       else window.location.reload();
     } else {
       const nxt = nS[s];
-      if(nxt) window.location.href = 'https://' + nxt + '/faucet.php';
-      else {
+      if(nxt){
+        window.location.href = 'https://' + nxt + '/faucet.php';
+      } else {
         const currentIndex = sites.indexOf(s);
         if(currentIndex !== -1 && currentIndex < sites.length - 1){
           window.location.href = 'https://' + sites[currentIndex + 1] + '/faucet.php';
@@ -165,7 +169,6 @@
     GM_setValue('err_cnt_' + s, 0);
   }
   
-  // مؤقت الخمول للموقع المقفول: ينتقل تلقائياً للموقع التالي بعد 40 ثانية دون إظهار بنر النهاية
   let inactivityTimer = null;
   function resetInactivityTimer(){
     if(!path.includes('faucet')) {
@@ -340,6 +343,7 @@
       }catch(e){}
     }
   }
+  
   function selectPreferredCaptcha(){
     const sl = document.querySelector('#select_captcha');
     if(sl && sl.value !== '3'){
@@ -351,6 +355,7 @@
       }
     }
   }
+
   function handleWithdrawLogic(){
     if(path.includes('withdraw')){
       eZ();
@@ -412,7 +417,6 @@
       playAudio('success');
       handleSuccess();
       GM_setValue('f_lock_' + s, Date.now());
-      // مهلة أطول قليلاً (500ms) لضمان تخزين الحالة في GM_setValue والانتقال بسلاسة
       setTimeout(()=>{ goToNextSiteOrDone(); }, 500);
     } else if(toastText.includes('too many requests')){
       playAudio('error');
@@ -439,6 +443,8 @@
       return;
     }
 
+    selectPreferredCaptcha();
+
     if(!window._tbdts_clicked_once && isCaptchaVerified()){
       if(path.includes('login') || getLoginButton()){
         handleAutoLogin();
@@ -457,7 +463,6 @@
     if(checkCloudflareErrors(clearTimeoutFn, clearIntervalFn)) return;
     triggerInitialInteraction();
     if(typeof uWin.aB === 'function') uWin.aB();
-    selectPreferredCaptcha();
     if(path.includes('login') || document.getElementById('process_login')) handleAutoLogin();
     handleWithdrawLogic();
     checkToasts(clearTimeoutFn, clearIntervalFn);
