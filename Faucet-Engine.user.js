@@ -57,9 +57,8 @@
 
   /* ========================================================= */
   /* [0.0] البنر الاختباري للتحقق من التحديث الفعلي من جيت هب     */
-  /* (يتغير رقم الإصدار مع كل تعديل، ويُحذف في النسخة النهائية)   */
   /* ========================================================= */
-  const TEST_VERSION_TAG = "TEST_BANNER_v3_FIXED_LOCK";
+  const TEST_VERSION_TAG = "TEST_BANNER_v4_LOCKED_IDLE";
   function injectTestBanner() {
     if (document.getElementById('tbdts-test-banner')) return;
     const banner = document.createElement('div');
@@ -77,7 +76,7 @@
   }
   injectTestBanner();
 
-  // حل مشكلة تحميل الصفحة من ذاكرة المتصفح المؤقتة (bfcache) لمنع توست Invalid Captcha
+  // حل مشكلة تحميل الصفحة من ذاكرة المتصفح المؤقتة (bfcache)
   window.addEventListener('pageshow', function(event) {
     if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
       window.location.reload();
@@ -161,21 +160,25 @@
   function handleSuccess(){
     GM_setValue('err_cnt_' + s, 0);
   }
+  
+  // مؤقت الخمول (40 ثانية) للموقع المقفول
   let inactivityTimer = null;
   function resetInactivityTimer(){
-    if(!path.includes('faucet') || isUnlocked(s)){
+    if(!path.includes('faucet')) {
       if(inactivityTimer) clearTimeout(inactivityTimer);
       return;
     }
     if(inactivityTimer) clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(()=>{
       if(typeof uWin.showDone === 'function') uWin.showDone();
-    }, 4e4);
+      else window.location.reload();
+    }, 4e4); // 40 ثانية
   }
   resetInactivityTimer();
   ['click','mousemove','keydown','scroll','touchstart'].forEach(evt=>{
     window.addEventListener(evt, resetInactivityTimer, {passive: true});
   });
+
   let _phraseScrolled = false;
   function checkAndScrollForPhrase(){
     if(_phraseScrolled) return;
@@ -272,11 +275,8 @@
     if(window._tbdts_clicked_once || uWin._tbdts_SINGLE_LOCK) return;
     const b = getClaimButton();
     if(!b || !isCaptchaVerified()) return;
-    
-    // القفل الفوري والاستباقي لمنع أي سباق زمني أو إرسال طلبات متعددة
     window._tbdts_clicked_once = true;
     uWin._tbdts_SINGLE_LOCK = true;
-    
     setTimeout(()=>{
       if(b) b.click();
     }, 300);
@@ -345,7 +345,6 @@
       sl.value = '3';
       sl.dispatchEvent(new Event('change', {bubbles: true}));
       sl.dispatchEvent(new Event('input', {bubbles: true}));
-      // تفعيل jQuery لضمان استجابة الموقع 100%
       if(typeof window.jQuery !== 'undefined'){
         window.jQuery(sl).val('3').trigger('change').trigger('input');
       }
@@ -439,11 +438,8 @@
   function runLoopCycle(clearTimeoutFn, clearIntervalFn){
     if(!GM_getValue('gl_script_on', true) || window._tbdts_toast_processed) return;
 
-    // فحص قفل الموقع: إذا كان الموقع مقفلاً (تمت مطالبته خلال الساعة الماضية)، انتقل فوراً للموقع التالي
+    // إذا كان الموقع مقفلاً (لم يحن وقت المطالبة بعد): لا يتم أي انتقال، فقط انتظار الخمول
     if(!isUnlocked(s)){
-      clearTimeoutFn();
-      clearIntervalFn();
-      goToNextSiteOrDone();
       return;
     }
 
