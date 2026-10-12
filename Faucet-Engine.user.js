@@ -7,9 +7,6 @@
 (function() {
   'use strict';
   const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
-  /* ========================================================= */
-  /* [2.1] قفل الشبكة الحديدي (Network Level Interceptor)       */
-  /* ========================================================= */
   uWin._tbdts_SINGLE_LOCK = false;
   const origFetch = uWin.fetch;
   uWin.fetch = function(...args) {
@@ -55,10 +52,7 @@
   if(window._m_run_active) return;
   window._m_run_active = true;
 
-  /* ========================================================= */
-  /* [0.0] البنر الاختباري للتحقق من التحديث الفعلي من جيت هب     */
-  /* ========================================================= */
-  const TEST_VERSION_TAG = "TEST_BANNER_v4_LOCKED_IDLE";
+  const TEST_VERSION_TAG = "TEST_BANNER_v5_FIX_NAVIGATION";
   function injectTestBanner() {
     if (document.getElementById('tbdts-test-banner')) return;
     const banner = document.createElement('div');
@@ -76,7 +70,6 @@
   }
   injectTestBanner();
 
-  // حل مشكلة تحميل الصفحة من ذاكرة المتصفح المؤقتة (bfcache)
   window.addEventListener('pageshow', function(event) {
     if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
       window.location.reload();
@@ -96,11 +89,15 @@
       }
     });
   }, 100);
-  const sites = uWin.MY_SITES || ['tronpick.io'];
-  const nS = uWin.MY_NS || {'tronpick.io':'tronpick.io'};
-  /* ========================================================= */
-  /* [2.2] قواعد أنماط CSS للإخفاء (قابلة للتعديل والتحديث مستقبلاً) */
-  /* ========================================================= */
+  const sites = uWin.MY_SITES || ['tronpick.io', 'bnbpick.io', 'dogepick.game', 'tonpick.game', 'solpick.io'];
+  const nS = uWin.MY_NS || {
+    'tronpick.io': 'bnbpick.io',
+    'bnbpick.io': 'dogepick.game',
+    'dogepick.game': 'tonpick.game',
+    'tonpick.game': 'solpick.io',
+    'solpick.io': 'solpick.io'
+  };
+
   const hideCss = ".cpx_uqnxd_80,.cpx_uqnxd_83,#show_surveys,#show_surveys > h3,table.history_tbl,th[width=\"50%\"],th.top_header,tr.history_row > td,div.faucet-tabs,.faucet-tab,.faucet-tab.is-active,#hourly_faucet > p,.level-progress-card.level-progress-card--tabs,.level-progress-card__inner,#cpx_survey,footer.footer,div.footer-container,.iconcaptcha-modal__header,.iconcaptcha-modal__footer,.iconcaptcha-modal__body-info,h2.single_title_n,div[class=\"single_title_n\"] > h2,p[style*=\"margin: 0px auto 30px\"],p[style*=\"margin:0 auto 30px\"],.promo-banner,#promo_banner,div[data-interval=\"5000\"],div[aria-roledescription=\"carousel\"],div[data-contest-end],div[aria-label=\"Feature promotions\"]{display:none!important}.dash_tp_menu_area{display:block!important;visibility:visible!important;opacity:1!important}.nav_container{display:flex!important;visibility:visible!important;opacity:1!important}";
   
   uWin._tbdts_hideCss = hideCss;
@@ -122,9 +119,7 @@
     const earlyObs = new MutationObserver(()=>{if(injectFastStyle()) earlyObs.disconnect()});
     earlyObs.observe(document, {childList: true, subtree: true});
   }
-  /* ========================================================= */
-  /* [2.3] دوال التحقق، الحالة، التوقيت والأخطاء الأساسية       */
-  /* ========================================================= */
+
   function isUnlocked(dom){
     const lT = GM_getValue('f_lock_' + dom, 0);
     return !lT || (Date.now() - lT >= 36e5);
@@ -132,6 +127,8 @@
   function hR(){
     window.location.replace(window.location.origin + window.location.pathname + '?t=' + Date.now());
   }
+
+  // دالة الانتقال الذكية للموقع التالي أو إنهاء السلسلة في الموقع الأخير فقط
   function goToNextSiteOrDone(){
     const isLast = sites[sites.length - 1] === s;
     if(isLast){
@@ -146,6 +143,7 @@
       }
     }
   }
+
   function handleFailure(){
     let errCnt = GM_getValue('err_cnt_' + s, 0) + 1;
     if(errCnt >= 2){
@@ -161,7 +159,7 @@
     GM_setValue('err_cnt_' + s, 0);
   }
   
-  // مؤقت الخمول (40 ثانية) للموقع المقفول
+  // مؤقت الخمول للموقع المقفول: ينتقل تلقائياً للموقع التالي بدل إظهار بنر النهاية في المنتصف
   let inactivityTimer = null;
   function resetInactivityTimer(){
     if(!path.includes('faucet')) {
@@ -170,9 +168,8 @@
     }
     if(inactivityTimer) clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(()=>{
-      if(typeof uWin.showDone === 'function') uWin.showDone();
-      else window.location.reload();
-    }, 4e4); // 40 ثانية
+      goToNextSiteOrDone();
+    }, 4e4); // 40 ثانية للانتقال التلقائي
   }
   resetInactivityTimer();
   ['click','mousemove','keydown','scroll','touchstart'].forEach(evt=>{
@@ -247,9 +244,7 @@
       maintT = setTimeout(()=>{ goToNextSiteOrDone(); }, 2000);
     }
   }
-  /* ========================================================= */
-  /* [2.4] الكابتشا، تسجيل الدخول والنقر المنفرد              */
-  /* ========================================================= */
+
   window._tbdts_toast_processed = false;
   window._tbdts_clicked_once = false;
   function getClaimButton(){ return document.getElementById('process_claim_hourly_faucet'); }
@@ -390,13 +385,10 @@
       }
     }
   }
-  /* ========================================================= */
-  /* [2.5] معالجة التنبيهات (Toasts) والنتائج                   */
-  /* ========================================================= */
+
   function getActiveToast(){
     const allToasts = document.querySelectorAll('.jq-toast-single');
     for(let t of allToasts){
-      let tTxt = (t.innerText || t.textContent || '').toLowerCase();
       return t;
     }
     return null;
@@ -432,13 +424,10 @@
       processToastResult(realToast, clearTimeoutFn, clearIntervalFn);
     }
   }
-  /* ========================================================= */
-  /* [2.6] حلقة التشغيل الرئيسية والنبضات (Run Loop & Cycle)     */
-  /* ========================================================= */
+
   function runLoopCycle(clearTimeoutFn, clearIntervalFn){
     if(!GM_getValue('gl_script_on', true) || window._tbdts_toast_processed) return;
 
-    // إذا كان الموقع مقفلاً (لم يحن وقت المطالبة بعد): لا يتم أي انتقال، فقط انتظار الخمول
     if(!isUnlocked(s)){
       return;
     }
