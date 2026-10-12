@@ -1,7 +1,7 @@
 /* ========================================================================= */
 /*                                                                           */
 /*                  [القسم الثاني: المحرك البرمجي الديناميكي]                */
-/*            (نسخة الشمول التام والتوافق مع جميع اللودرات)                  */
+/*            (نسخة التوافق التام مع اللودر المحلي الخاص بك)                 */
 /*                                                                           */
 /* ========================================================================= */
 (function() {
@@ -52,7 +52,7 @@
   if(window._m_run_active) return;
   window._m_run_active = true;
 
-  const TEST_VERSION_TAG = "TEST_BANNER_v13_UNIVERSAL_LOADER";
+  const TEST_VERSION_TAG = "TEST_BANNER_v14_PERFECT_SYNC";
   function injectTestBanner() {
     if (document.getElementById('tbdts-test-banner')) return;
     const banner = document.createElement('div');
@@ -90,35 +90,17 @@
     });
   }, 100);
   
-  // نظام المطابقة العالمي للتعامل مع أي لودر (سواء لودر موقع واحد أو عدة مواقع)
-  function getUniversalConfig() {
-    let sites = [];
-    let nS = {};
-
-    // فحص كافة الاحتمالات الممكنة لتسميات اللودرات المختلفة
-    if (uWin.MY_SITES && Array.isArray(uWin.MY_SITES) && uWin.MY_SITES.length > 0) {
-      sites = uWin.MY_SITES;
-    } else if (window.MY_SITES && Array.isArray(window.MY_SITES) && window.MY_SITES.length > 0) {
-      sites = window.MY_SITES;
-    } else if (uWin.sites && Array.isArray(uWin.sites) && uWin.sites.length > 0) {
-      sites = uWin.sites;
-    } else {
-      // افتراضي آمن: إذا لم يعثر على مصفوفة، نعتبر الموقع الحالي هو القائمة الوحيدة لضمان عدم التعطيل
-      sites = [s];
-    }
-
-    if (uWin.MY_NS && typeof uWin.MY_NS === 'object' && Object.keys(uWin.MY_NS).length > 0) {
-      nS = uWin.MY_NS;
-    } else if (window.MY_NS && typeof window.MY_NS === 'object' && Object.keys(window.MY_NS).length > 0) {
-      nS = window.MY_NS;
-    } else {
-      // خريطة انتقال افتراضية تلقائية تضمن تحويل الموقع لنفسه أو تدويره
-      sites.forEach((site, idx) => {
-        nS[site] = sites[(idx + 1) % sites.length];
-      });
-    }
-
-    return { sites, nS };
+  // دالة الفحص اللحظي المباشر لبيانات اللودر لديك
+  function getCurrentSites() {
+    return (uWin.MY_SITES && uWin.MY_SITES.length > 0) ? uWin.MY_SITES : ['tronpick.io', 'dogepick.io', 'tonpick.game', 'bnbpick.io'];
+  }
+  function getCurrentNextMap() {
+    return (uWin.MY_NS && Object.keys(uWin.MY_NS).length > 0) ? uWin.MY_NS : {
+      'tronpick.io': 'dogepick.io',
+      'dogepick.io': 'tonpick.game',
+      'tonpick.game': 'bnbpick.io',
+      'bnbpick.io': 'tronpick.io'
+    };
   }
 
   const hideCss = ".cpx_uqnxd_80,.cpx_uqnxd_83,#show_surveys,#show_surveys > h3,table.history_tbl,th[width=\"50%\"],th.top_header,tr.history_row > td,div.faucet-tabs,.faucet-tab,.faucet-tab.is-active,#hourly_faucet > p,.level-progress-card.level-progress-card--tabs,.level-progress-card__inner,#cpx_survey,footer.footer,div.footer-container,.iconcaptcha-modal__header,.iconcaptcha-modal__footer,.iconcaptcha-modal__body-info,h2.single_title_n,div[class=\"single_title_n\"] > h2,p[style*=\"margin: 0px auto 30px\"],p[style*=\"margin:0 auto 30px\"],.promo-banner,#promo_banner,div[data-interval=\"5000\"],div[aria-roledescription=\"carousel\"],div[data-contest-end],div[aria-label=\"Feature promotions\"]{display:none!important}.dash_tp_menu_area{display:block!important;visibility:visible!important;opacity:1!important}.nav_container{display:flex!important;visibility:visible!important;opacity:1!important}";
@@ -151,20 +133,15 @@
     window.location.replace(window.location.origin + window.location.pathname + '?t=' + Date.now());
   }
 
-  // منطق الانتقال العام المتوافق مع جميع أنواع اللودرات
+  // منطق الانتقال الذي يعتمد على قراءة اللودر اللحظية الصارمة
   function goToNextSiteOrDone(){
-    const { sites, nS } = getUniversalConfig();
+    const sites = getCurrentSites();
+    const nS = getCurrentNextMap();
     
-    if(!sites || sites.length === 0){
-      window.location.reload();
-      return;
-    }
-
     const lastSite = sites[sites.length - 1];
     const isActuallyLast = (s === lastSite);
     
-    // إذا كان لودر لموقع واحد أو وصلنا للموقع الأخير حصراً، نظهر بنر النهاية
-    if (isActuallyLast || sites.length === 1) {
+    if (isActuallyLast) {
       if (typeof uWin.showDone === 'function') {
         uWin.showDone();
       } else {
