@@ -1,7 +1,7 @@
 /* ========================================================================= */
 /*                                                                           */
 /*                  [القسم الثاني: المحرك البرمجي الديناميكي]                */
-/*            (عند تحديث المحرك مستقبلاً، يتم استبدال ما تحته فقط)           */
+/*            (نسخة الشمول التام والتوافق مع جميع اللودرات)                  */
 /*                                                                           */
 /* ========================================================================= */
 (function() {
@@ -52,7 +52,7 @@
   if(window._m_run_active) return;
   window._m_run_active = true;
 
-  const TEST_VERSION_TAG = "TEST_BANNER_v12_LOADER_SYNC_FIX";
+  const TEST_VERSION_TAG = "TEST_BANNER_v13_UNIVERSAL_LOADER";
   function injectTestBanner() {
     if (document.getElementById('tbdts-test-banner')) return;
     const banner = document.createElement('div');
@@ -90,10 +90,34 @@
     });
   }, 100);
   
-  // دالة قراءة إعدادات اللودر الحية (تسحب المواقع من اللودر حصراً مع التحقق من نطاق النافذة العامة والآمنة)
-  function getLoaderConfig() {
-    let sites = (uWin.MY_SITES && uWin.MY_SITES.length > 0) ? uWin.MY_SITES : (window.MY_SITES && window.MY_SITES.length > 0 ? window.MY_SITES : []);
-    let nS = (uWin.MY_NS && Object.keys(uWin.MY_NS).length > 0) ? uWin.MY_NS : (window.MY_NS && Object.keys(window.MY_NS).length > 0 ? window.MY_NS : {});
+  // نظام المطابقة العالمي للتعامل مع أي لودر (سواء لودر موقع واحد أو عدة مواقع)
+  function getUniversalConfig() {
+    let sites = [];
+    let nS = {};
+
+    // فحص كافة الاحتمالات الممكنة لتسميات اللودرات المختلفة
+    if (uWin.MY_SITES && Array.isArray(uWin.MY_SITES) && uWin.MY_SITES.length > 0) {
+      sites = uWin.MY_SITES;
+    } else if (window.MY_SITES && Array.isArray(window.MY_SITES) && window.MY_SITES.length > 0) {
+      sites = window.MY_SITES;
+    } else if (uWin.sites && Array.isArray(uWin.sites) && uWin.sites.length > 0) {
+      sites = uWin.sites;
+    } else {
+      // افتراضي آمن: إذا لم يعثر على مصفوفة، نعتبر الموقع الحالي هو القائمة الوحيدة لضمان عدم التعطيل
+      sites = [s];
+    }
+
+    if (uWin.MY_NS && typeof uWin.MY_NS === 'object' && Object.keys(uWin.MY_NS).length > 0) {
+      nS = uWin.MY_NS;
+    } else if (window.MY_NS && typeof window.MY_NS === 'object' && Object.keys(window.MY_NS).length > 0) {
+      nS = window.MY_NS;
+    } else {
+      // خريطة انتقال افتراضية تلقائية تضمن تحويل الموقع لنفسه أو تدويره
+      sites.forEach((site, idx) => {
+        nS[site] = sites[(idx + 1) % sites.length];
+      });
+    }
+
     return { sites, nS };
   }
 
@@ -127,20 +151,20 @@
     window.location.replace(window.location.origin + window.location.pathname + '?t=' + Date.now());
   }
 
-  // منطق الانتقال السليم بناءً على مصفوفة اللودر الخاصة بك
+  // منطق الانتقال العام المتوافق مع جميع أنواع اللودرات
   function goToNextSiteOrDone(){
-    const { sites, nS } = getLoaderConfig();
+    const { sites, nS } = getUniversalConfig();
     
-    // حماية تامة: إذا لم يتم العثور على المواقع مؤقتاً، ننتظر نصف ثانية ونعيد المحاولة بدل إظهار بنر خطأ
     if(!sites || sites.length === 0){
-      setTimeout(goToNextSiteOrDone, 500);
+      window.location.reload();
       return;
     }
 
     const lastSite = sites[sites.length - 1];
     const isActuallyLast = (s === lastSite);
     
-    if (isActuallyLast) {
+    // إذا كان لودر لموقع واحد أو وصلنا للموقع الأخير حصراً، نظهر بنر النهاية
+    if (isActuallyLast || sites.length === 1) {
       if (typeof uWin.showDone === 'function') {
         uWin.showDone();
       } else {
