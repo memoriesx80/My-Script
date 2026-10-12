@@ -52,7 +52,7 @@
   if(window._m_run_active) return;
   window._m_run_active = true;
 
-  const TEST_VERSION_TAG = "TEST_BANNER_v10_LOADER_SYNC";
+  const TEST_VERSION_TAG = "TEST_BANNER_v11_SYNC_FIX";
   function injectTestBanner() {
     if (document.getElementById('tbdts-test-banner')) return;
     const banner = document.createElement('div');
@@ -90,9 +90,12 @@
     });
   }, 100);
   
-  // سحب المواقع وخريطة الانتقال من اللودر المحلي للمستخدم حصراً مع احتياط آمن
-  const sites = (uWin.MY_SITES && uWin.MY_SITES.length > 0) ? uWin.MY_SITES : [];
-  const nS = (uWin.MY_NS && Object.keys(uWin.MY_NS).length > 0) ? uWin.MY_NS : {};
+  // دالة ذكية وآمنة لجلب المواقع وخريطة الانتقال من اللودر مع دعم النافذة الآمنة
+  function getSitesConfig() {
+    let sites = (uWin.MY_SITES && uWin.MY_SITES.length > 0) ? uWin.MY_SITES : (window.MY_SITES && window.MY_SITES.length > 0 ? window.MY_SITES : []);
+    let nS = (uWin.MY_NS && Object.keys(uWin.MY_NS).length > 0) ? uWin.MY_NS : (window.MY_NS && Object.keys(window.MY_NS).length > 0 ? window.MY_NS : {});
+    return { sites, nS };
+  }
 
   const hideCss = ".cpx_uqnxd_80,.cpx_uqnxd_83,#show_surveys,#show_surveys > h3,table.history_tbl,th[width=\"50%\"],th.top_header,tr.history_row > td,div.faucet-tabs,.faucet-tab,.faucet-tab.is-active,#hourly_faucet > p,.level-progress-card.level-progress-card--tabs,.level-progress-card__inner,#cpx_survey,footer.footer,div.footer-container,.iconcaptcha-modal__header,.iconcaptcha-modal__footer,.iconcaptcha-modal__body-info,h2.single_title_n,div[class=\"single_title_n\"] > h2,p[style*=\"margin: 0px auto 30px\"],p[style*=\"margin:0 auto 30px\"],.promo-banner,#promo_banner,div[data-interval=\"5000\"],div[aria-roledescription=\"carousel\"],div[data-contest-end],div[aria-label=\"Feature promotions\"]{display:none!important}.dash_tp_menu_area{display:block!important;visibility:visible!important;opacity:1!important}.nav_container{display:flex!important;visibility:visible!important;opacity:1!important}";
   
@@ -124,12 +127,20 @@
     window.location.replace(window.location.origin + window.location.pathname + '?t=' + Date.now());
   }
 
-  // منطق الانتقال الذي يعتمد كلياً على مصفوفة اللودر الخاصة بك
+  // منطق الانتقال الآمن المعتمد على قراءة إعدادات اللودر اللحظية
   function goToNextSiteOrDone(){
-    const lastSite = sites.length > 0 ? sites[sites.length - 1] : s;
+    const { sites, nS } = getSitesConfig();
+    
+    // إذا لم يقرأ اللودر المواقع لأي سبب، نقوم بإعادة تحميل الصفحة كحماية بديلة بدل إظهار بنر خطأ
+    if(!sites || sites.length === 0){
+      window.location.reload();
+      return;
+    }
+
+    const lastSite = sites[sites.length - 1];
     const isActuallyLast = (s === lastSite);
     
-    if (isActuallyLast || sites.length === 0) {
+    if (isActuallyLast) {
       if (typeof uWin.showDone === 'function') {
         uWin.showDone();
       } else {
