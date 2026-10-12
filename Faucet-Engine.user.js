@@ -242,11 +242,14 @@
     if(window._tbdts_clicked_once || uWin._tbdts_SINGLE_LOCK) return;
     const b = getClaimButton();
     if(!b || !isCaptchaVerified()) return;
+    
+    // القفل الفوري والاستباقي لمنع أي سباق زمني أو إرسال طلبات متعددة
     window._tbdts_clicked_once = true;
     uWin._tbdts_SINGLE_LOCK = true;
+    
     setTimeout(()=>{
       if(b) b.click();
-    }, 500);
+    }, 300);
   }
   function executeSingleLogin(){
     if(window._tbdts_clicked_once || uWin._tbdts_SINGLE_LOCK) return;
@@ -256,7 +259,7 @@
     uWin._tbdts_SINGLE_LOCK = true;
     setTimeout(()=>{
       if(b) b.click();
-    }, 500);
+    }, 300);
   }
   function fillLoginFields(){
     const emailInP = document.getElementById('user_email'), passInP = document.getElementById('password');
@@ -312,6 +315,10 @@
       sl.value = '3';
       sl.dispatchEvent(new Event('change', {bubbles: true}));
       sl.dispatchEvent(new Event('input', {bubbles: true}));
+      // إضافة تفعيل jQuery لضمان استجابة الموقع 100% مهما كان نوع مستمع الأحداث لديه
+      if(typeof window.jQuery !== 'undefined'){
+        window.jQuery(sl).val('3').trigger('change').trigger('input');
+      }
     }
   }
   function handleWithdrawLogic(){
