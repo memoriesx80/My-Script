@@ -52,7 +52,7 @@
   if(window._m_run_active) return;
   window._m_run_active = true;
 
-  const TEST_VERSION_TAG = "TEST_BANNER_v5_FIX_NAVIGATION";
+  const TEST_VERSION_TAG = "TEST_BANNER_v6_FINAL_NAV";
   function injectTestBanner() {
     if (document.getElementById('tbdts-test-banner')) return;
     const banner = document.createElement('div');
@@ -89,6 +89,7 @@
       }
     });
   }, 100);
+  
   const sites = uWin.MY_SITES || ['tronpick.io', 'bnbpick.io', 'dogepick.game', 'tonpick.game', 'solpick.io'];
   const nS = uWin.MY_NS || {
     'tronpick.io': 'bnbpick.io',
@@ -128,7 +129,7 @@
     window.location.replace(window.location.origin + window.location.pathname + '?t=' + Date.now());
   }
 
-  // دالة الانتقال الذكية للموقع التالي أو إنهاء السلسلة في الموقع الأخير فقط
+  // الانتقال الدقيق للموقع التالي حصراً، ولا يتم عرض بنر النهاية (showDone) إلا إذا كان الموقع الأخير تماماً
   function goToNextSiteOrDone(){
     const isLast = sites[sites.length - 1] === s;
     if(isLast){
@@ -138,8 +139,13 @@
       const nxt = nS[s];
       if(nxt) window.location.href = 'https://' + nxt + '/faucet.php';
       else {
-        if(typeof uWin.showDone === 'function') uWin.showDone();
-        else window.location.reload();
+        const currentIndex = sites.indexOf(s);
+        if(currentIndex !== -1 && currentIndex < sites.length - 1){
+          window.location.href = 'https://' + sites[currentIndex + 1] + '/faucet.php';
+        } else {
+          if(typeof uWin.showDone === 'function') uWin.showDone();
+          else window.location.reload();
+        }
       }
     }
   }
@@ -159,7 +165,7 @@
     GM_setValue('err_cnt_' + s, 0);
   }
   
-  // مؤقت الخمول للموقع المقفول: ينتقل تلقائياً للموقع التالي بدل إظهار بنر النهاية في المنتصف
+  // مؤقت الخمول للموقع المقفول: ينتقل تلقائياً للموقع التالي بعد 40 ثانية دون إظهار بنر النهاية
   let inactivityTimer = null;
   function resetInactivityTimer(){
     if(!path.includes('faucet')) {
@@ -169,7 +175,7 @@
     if(inactivityTimer) clearTimeout(inactivityTimer);
     inactivityTimer = setTimeout(()=>{
       goToNextSiteOrDone();
-    }, 4e4); // 40 ثانية للانتقال التلقائي
+    }, 4e4); 
   }
   resetInactivityTimer();
   ['click','mousemove','keydown','scroll','touchstart'].forEach(evt=>{
@@ -406,7 +412,8 @@
       playAudio('success');
       handleSuccess();
       GM_setValue('f_lock_' + s, Date.now());
-      setTimeout(()=>{ goToNextSiteOrDone(); }, 100);
+      // مهلة أطول قليلاً (500ms) لضمان تخزين الحالة في GM_setValue والانتقال بسلاسة
+      setTimeout(()=>{ goToNextSiteOrDone(); }, 500);
     } else if(toastText.includes('too many requests')){
       playAudio('error');
       GM_setValue('err_cnt_' + s, 0);
