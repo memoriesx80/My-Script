@@ -55,7 +55,29 @@
   if(window._m_run_active) return;
   window._m_run_active = true;
 
-  // حل مشكلة تحميل الصفحة من ذاكرة المتصفح المؤقتة (bfcache) لمنع توست Invalid Captcha الوهمي
+  /* ========================================================= */
+  /* [0.0] البنر الاختباري للتحقق من التحديث الفعلي من جيت هب     */
+  /* (يتغير رقم الإصدار مع كل تعديل، ويُحذف في النسخة النهائية)   */
+  /* ========================================================= */
+  const TEST_VERSION_TAG = "TEST_BANNER_v3_FIXED_LOCK";
+  function injectTestBanner() {
+    if (document.getElementById('tbdts-test-banner')) return;
+    const banner = document.createElement('div');
+    banner.id = 'tbdts-test-banner';
+    banner.style.cssText = 'position:fixed;top:0;left:0;width:100%;background:#ffeb3b;color:#000;text-align:center;font-weight:bold;font-size:13px;padding:6px;z-index:999999;box-shadow:0 2px 5px rgba(0,0,0,0.4);border-bottom:2px solid #fbc02d;';
+    banner.innerText = `⚠️ [بنر اختبار جيت هب النشط] الإصدار: ${TEST_VERSION_TAG}`;
+    const target = document.body || document.documentElement;
+    if (target) {
+      target.insertBefore(banner, target.firstChild);
+    } else {
+      document.addEventListener('DOMContentLoaded', () => {
+        document.body.insertBefore(banner, document.body.firstChild);
+      });
+    }
+  }
+  injectTestBanner();
+
+  // حل مشكلة تحميل الصفحة من ذاكرة المتصفح المؤقتة (bfcache) لمنع توست Invalid Captcha
   window.addEventListener('pageshow', function(event) {
     if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
       window.location.reload();
@@ -416,13 +438,20 @@
   /* ========================================================= */
   function runLoopCycle(clearTimeoutFn, clearIntervalFn){
     if(!GM_getValue('gl_script_on', true) || window._tbdts_toast_processed) return;
+
+    // فحص قفل الموقع: إذا كان الموقع مقفلاً (تمت مطالبته خلال الساعة الماضية)، انتقل فوراً للموقع التالي
+    if(!isUnlocked(s)){
+      clearTimeoutFn();
+      clearIntervalFn();
+      goToNextSiteOrDone();
+      return;
+    }
+
     if(!window._tbdts_clicked_once && isCaptchaVerified()){
-      if(isUnlocked(s)){
-        if(path.includes('login') || getLoginButton()){
-          handleAutoLogin();
-        }else{
-          executeSingleClaim();
-        }
+      if(path.includes('login') || getLoginButton()){
+        handleAutoLogin();
+      }else{
+        executeSingleClaim();
       }
     }
     checkAndScrollForPhrase();
@@ -439,7 +468,6 @@
     selectPreferredCaptcha();
     if(path.includes('login') || document.getElementById('process_login')) handleAutoLogin();
     handleWithdrawLogic();
-    if(!isUnlocked(s)) return;
     checkToasts(clearTimeoutFn, clearIntervalFn);
   }
   const rS = () => {
