@@ -54,6 +54,14 @@
   'use strict';
   if(window._m_run_active) return;
   window._m_run_active = true;
+
+  // حل مشكلة تحميل الصفحة من ذاكرة المتصفح المؤقتة (bfcache) لمنع توست Invalid Captcha الوهمي
+  window.addEventListener('pageshow', function(event) {
+    if (event.persisted || (window.performance && window.performance.navigation.type === 2)) {
+      window.location.reload();
+    }
+  });
+
   const path = window.location.pathname.toLowerCase();
   const s = window.location.hostname.replace(/^www\./, '');
   const uWin = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
@@ -315,7 +323,7 @@
       sl.value = '3';
       sl.dispatchEvent(new Event('change', {bubbles: true}));
       sl.dispatchEvent(new Event('input', {bubbles: true}));
-      // إضافة تفعيل jQuery لضمان استجابة الموقع 100% مهما كان نوع مستمع الأحداث لديه
+      // تفعيل jQuery لضمان استجابة الموقع 100%
       if(typeof window.jQuery !== 'undefined'){
         window.jQuery(sl).val('3').trigger('change').trigger('input');
       }
